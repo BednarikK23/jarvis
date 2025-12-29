@@ -1,0 +1,232 @@
+/* ChatWindow.css */
+.chat-window {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.chat-header {
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+
+.chat-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.chat-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.delete-chat-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    padding: 4px;
+    z-index: 20;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.delete-chat-btn:hover {
+    color: var(--error-color);
+}
+
+.model-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.model-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.model-select {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.8rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    /* padding is handled by message bubbles themselves */
+}
+
+.loader-container {
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.input-area-container {
+    padding: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.input-disclaimer {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ChatInput styles */
+.chat-input-form {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.5rem;
+    display: flex;
+    align-items: flex-end;
+}
+
+.chat-input-textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    padding: 0.5rem;
+    resize: none;
+    min-height: 2rem;
+    max-height: 150px;
+    outline: none;
+    font-family: inherit;
+}
+
+.chat-input-btn {
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    transition: color 0.2s;
+}
+
+.chat-input-btn:disabled {
+    cursor: default;
+    color: var(--text-muted);
+}
+
+.chat-input-stop-btn {
+    color: var(--error-color);
+}
+
+/* MessageBubble styles */
+.message-bubble {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.message-bubble.assistant {
+    background-color: var(--bg-secondary);
+}
+
+.message-bubble.user {
+    background-color: transparent;
+}
+
+.message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.message-avatar.user {
+    background: var(--bg-tertiary);
+}
+
+.message-avatar.assistant {
+    background: var(--accent-color);
+}
+
+.message-content {
+    flex: 1;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.message-sender-name {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.markdown-content {
+    color: var(--text-primary);
+}
+
+.code-block-wrapper {
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+    border: 1px solid var(--border-color);
+}
+
+.code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background: #2d2d2d;
+    color: #ccc;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #404040;
+}
+
+.copy-code-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.copy-code-btn:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.inline-code {
+    background: var(--bg-tertiary);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: monospace;
+}

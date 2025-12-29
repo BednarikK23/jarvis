@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, Trash2, Square } from 'lucide-react';
 import { fetchChat } from '../api';
 import MessageBubble from './MessageBubble';
 import { DEFAULT_MODEL, MAX_CONTEXT_MESSAGES } from '../constants';
+import ChatInput from './ChatInput';
+import './ChatWindow.css';
 
-const ChatWindow = ({ activeChat }) => {
+/**
+ * ChatWindow Component
+ * Displays the chat interface including message history and input area.
+ * Handles streaming responses, message history management, and model selection.
+ * 
+ * @param {Object} activeChat - The currently selected chat object
+ * @param {Function} onDeleteChat - Callback function to delete the current chat
+ */
+const ChatWindow = ({ activeChat, onDeleteChat }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,6 +22,7 @@ const ChatWindow = ({ activeChat }) => {
   const [availableModels, setAvailableModels] = useState([]);
   const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const bottomRef = useRef(null);
+  const abortController = useRef(null);
 
   useEffect(() => {
     if (activeChat?.id) {
@@ -54,6 +65,12 @@ const ChatWindow = ({ activeChat }) => {
       }
   };
 
+  /**
+   * Handles sending a message to the backend.
+   * Utilizes the native fetch API with a ReadableStream reader for real-time response streaming.
+   * 
+   * @param {Event} e - Form submission event
+   */
   const handleSend = async (e) => {
       e.preventDefault();
       if (!input.trim() || streaming) return;
@@ -63,6 +80,9 @@ const ChatWindow = ({ activeChat }) => {
       setInput('');
       setLoading(true);
       setStreaming(true);
+
+      const controller = new AbortController();
+      abortController.current = controller;
 
       try {
           // Prepare messages context for the API
@@ -78,7 +98,8 @@ const ChatWindow = ({ activeChat }) => {
                   model: selectedModel, 
                   messages: contextMessages,
                   stream: true
-              })
+              }),
+              signal: controller.signal
           });
 
           if (!response.ok) throw new Error('Failed to send message');
@@ -105,107 +126,88 @@ const ChatWindow = ({ activeChat }) => {
               });
           }
       } catch (err) {
-          console.error(err);
-          setMessages(prev => [...prev, { role: 'assistant', content: 'Error: Failed to get response.' }]);
+          if (err.name === 'AbortError') {
+              console.log('Generation stopped by user');
+              // Optional: Indicate stopped state in UI if needed, or just leave as is
+          } else {
+              console.error(err);
+              setMessages(prev => [...prev, { role: 'assistant', content: 'Error: Failed to get response.' }]);
+          }
       } finally {
           setLoading(false);
           setStreaming(false);
+          abortController.current = null;
       }
   };
 
+  const handleStop = () => {
+      if (abortController.current) {
+          abortController.current.abort();
+      }
+  };
+
+
+
+// ...
+
   return (
-    <div className="chat-window" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
-        <div className="chat-header" style={{ padding: '1rem 2rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-             <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>{activeChat.title}</h3>
+    <div className="chat-window">
+        <div className="chat-header">
+             <h3 className="chat-title">{activeChat.title}</h3>
              
-             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Model:</span>
-                <select 
-                    value={selectedModel} 
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    style={{
-                        background: 'var(--bg-tertiary)',
-                        color: 'var(--text-primary)',
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '4px',
-                        padding: '0.2rem 0.5rem',
-                        fontSize: '0.8rem',
-                        outline: 'none',
-                        cursor: 'pointer'
-                    }}
+             <div className="chat-header-actions">
+                <button 
+                     onClick={() => {
+                        if (window.confirm('Are you sure you want to delete this chat?')) {
+                            onDeleteChat(activeChat.id);
+                        }
+                     }}
+                     className="delete-chat-btn"
+                     title="Delete Chat"
                 >
-                    {availableModels.length > 0 ? (
-                        availableModels.map(model => (
-                            <option key={model} value={model}>{model}</option>
-                        ))
-                    ) : (
-                        <option value={selectedModel}>{selectedModel}</option>
-                    )}
-                </select>
+                    <Trash2 size={18} />
+                </button>
+                <div className="model-selector-container">
+                    <span className="model-label">Model:</span>
+                    <select 
+                        value={selectedModel} 
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                        className="model-select"
+                    >
+                        {availableModels.length > 0 ? (
+                            availableModels.map(model => (
+                                <option key={model} value={model}>{model}</option>
+                            ))
+                        ) : (
+                            <option value={selectedModel}>{selectedModel}</option>
+                        )}
+                    </select>
+                </div>
              </div>
         </div>
         
-        <div className="messages" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div className="messages-container">
             {messages.map((msg, idx) => (
                 <MessageBubble key={idx} role={msg.role} content={msg.content} />
             ))}
             {loading && !streaming && (
-                <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center' }}>
+                <div className="loader-container">
                     <Loader2 className="spin" />
                 </div>
             )}
             <div ref={bottomRef} />
         </div>
 
-        <div className="input-area" style={{ padding: '2rem', borderTop: '1px solid var(--border-color)' }}>
-            <form 
-                onSubmit={handleSend}
-                style={{ 
-                    background: 'var(--bg-secondary)', 
-                    border: '1px solid var(--border-color)', 
-                    borderRadius: '8px', 
-                    padding: '0.5rem',
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    focusWithin: { borderColor: 'var(--accent-color)' } // Pseudo-style, accomplished via CSS usually
-                }}
-            >
-                <textarea 
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSend(e);
-                        }
-                    }}
-                    placeholder="Message Jarvis..." 
-                    style={{ 
-                        flex: 1, 
-                        background: 'transparent', 
-                        border: 'none', 
-                        color: 'var(--text-primary)',
-                        padding: '0.5rem',
-                        resize: 'none',
-                        minHeight: '2rem',
-                        maxHeight: '150px',
-                        outline: 'none',
-                        fontFamily: 'inherit'
-                    }} 
-                />
-                <button 
-                    type="submit" 
-                    disabled={!input.trim() || streaming}
-                    style={{ 
-                        padding: '0.5rem', 
-                        color: input.trim() ? 'var(--accent-color)' : 'var(--text-muted)',
-                        cursor: input.trim() ? 'pointer' : 'default'
-                    }}
-                >
-                    <Send size={20} />
-                </button>
-            </form>
-            <div style={{ textAlign: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        <div className="input-area-container">
+            <ChatInput 
+                input={input}
+                setInput={setInput}
+                handleSend={handleSend}
+                handleStop={handleStop}
+                loading={loading}
+                streaming={streaming}
+            />
+            <div className="input-disclaimer">
                 Jarvis can make mistakes. Please verify important information.
             </div>
         </div>

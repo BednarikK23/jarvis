@@ -1,0 +1,166 @@
+/* Sidebar.css */
+.sidebar {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-title-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-color);
+    border-radius: 50%;
+}
+
+.sidebar-title-suffix {
+    font-size: 0.8em;
+    opacity: 0.5;
+}
+
+.new-project-btn-container {
+    padding: 1rem;
+}
+
+.new-project-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-primary);
+    transition: all 0.2s;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.new-project-btn:hover {
+    border-color: var(--text-secondary);
+}
+
+.project-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 1rem;
+}
+
+.project-empty-state {
+    padding: 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* ProjectItem styles - assumed these might be moved or shared, 
+   but for now styling the structure here if ProjectItem uses these classes 
+*/
+.project-item-container {
+    margin-bottom: 0.5rem;
+}
+
+.project-item-header {
+    padding: 0.5rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    position: relative;
+    /* transition: background-color 0.2s; - Optional enhancement */
+}
+
+.project-item-header.active {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.project-item-header:not(.active) {
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.project-name-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 0;
+}
+
+.project-name {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.project-actions {
+    display: flex;
+    gap: 4px;
+    z-index: 2;
+    position: relative;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    transition: color 0.2s;
+}
+
+.icon-btn:hover {
+    color: var(--text-primary);
+}
+
+.chat-list {
+    margin-left: 1.5rem;
+    margin-top: 0.25rem;
+    border-left: 1px solid var(--border-color);
+    padding-left: 0.5rem;
+}
+
+.chat-item {
+    padding: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.chat-item:hover {
+    background-color: var(--bg-tertiary); /* Hover effect enhancement */
+}
+
+.chat-empty {
+    padding: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}

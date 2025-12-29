@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Generator, Any, Dict
 from database import get_db
 import models
 import schemas
@@ -16,7 +16,20 @@ router = APIRouter(
 ollama_client = OllamaClient()
 
 @router.post("/new", response_model=schemas.Chat)
-def create_chat(chat_data: schemas.ChatCreate, db: Session = Depends(get_db)):
+def create_chat(chat_data: schemas.ChatCreate, db: Session = Depends(get_db)) -> models.Chat:
+    """
+    Create a new chat session within a project.
+
+    Args:
+        chat_data (schemas.ChatCreate): Data required to create a chat.
+        db (Session): Database session.
+
+    Returns:
+        models.Chat: The created chat object.
+
+    Raises:
+        HTTPException: If the associated project is not found.
+    """
     # Verify project exists
     project = db.query(models.Project).filter(models.Project.id == chat_data.project_id).first()
     if not project:
@@ -29,19 +42,79 @@ def create_chat(chat_data: schemas.ChatCreate, db: Session = Depends(get_db)):
     return db_chat
 
 @router.get("/history/{project_id}", response_model=List[schemas.Chat])
-def get_project_chats(project_id: int, db: Session = Depends(get_db)):
+def get_project_chats(project_id: int, db: Session = Depends(get_db)) -> List[models.Chat]:
+    """
+    Retrieve all chats associated with a specific project.
+
+    Args:
+        project_id (int): ID of the project.
+        db (Session): Database session.
+
+    Returns:
+        List[models.Chat]: List of chat objects ordered by creation date.
+    """
     chats = db.query(models.Chat).filter(models.Chat.project_id == project_id).order_by(models.Chat.created_at.desc()).all()
     return chats
 
 @router.get("/{chat_id}", response_model=schemas.Chat)
-def get_chat(chat_id: int, db: Session = Depends(get_db)):
+def get_chat(chat_id: int, db: Session = Depends(get_db)) -> models.Chat:
+    """
+    Retrieve a specific chat by its ID.
+
+    Args:
+        chat_id (int): ID of the chat.
+        db (Session): Database session.
+
+    Returns:
+        models.Chat: The requested chat object.
+
+    Raises:
+        HTTPException: If the chat is not found.
+    """
     chat = db.query(models.Chat).filter(models.Chat.id == chat_id).first()
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
     return chat
 
+@router.delete("/{chat_id}")
+def delete_chat(chat_id: int, db: Session = Depends(get_db)) -> Dict[str, str]:
+    """
+    Delete a specific chat.
+
+    Args:
+        chat_id (int): ID of the chat to delete.
+        db (Session): Database session.
+
+    Returns:
+        Dict[str, str]: Status message.
+
+    Raises:
+        HTTPException: If the chat is not found.
+    """
+    chat = db.query(models.Chat).filter(models.Chat.id == chat_id).first()
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    
+    db.delete(chat)
+    db.commit()
+    return {"status": "success", "message": "Chat deleted"}
+
 @router.post("/{chat_id}/message")
-def send_message(chat_id: int, request: schemas.ChatRequest, db: Session = Depends(get_db)):
+def send_message(chat_id: int, request: schemas.ChatRequest, db: Session = Depends(get_db)) -> StreamingResponse:
+    """
+    Send a message to the chat and stream the AI response.
+
+    Args:
+        chat_id (int): ID of the chat.
+        request (schemas.ChatRequest): Request body containing messages and model.
+        db (Session): Database session.
+
+    Returns:
+        StreamingResponse: SSE stream of the AI response.
+
+    Raises:
+        HTTPException: If chat not found or request is invalid.
+    """
     chat = db.query(models.Chat).filter(models.Chat.id == chat_id).first()
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
@@ -69,7 +142,7 @@ def send_message(chat_id: int, request: schemas.ChatRequest, db: Session = Depen
         context_messages.append({"role": msg.role, "content": msg.content})
 
     # 3. Stream Response from Ollama
-    def generate():
+    def generate() -> Generator[str, None, None]:
         full_response = ""
         try:
             for chunk in ollama_client.chat(model=request.model, messages=context_messages, stream=True):
@@ -80,12 +153,6 @@ def send_message(chat_id: int, request: schemas.ChatRequest, db: Session = Depen
             full_response += f"\n[Error: {str(e)}]"
         
         # 4. Save Assistant Response to DB
-        # We need a new session here because the generator runs outside the request scope potentially?
-        # Actually for simplicity with SQLite, we can try to use a new session block at the end.
-        # But `yield` returns control. So we do it after the loop finishes? 
-        # Streaming response is tricky with DB writes AFTER stream.
-        # We'll re-instantiate a session to save the message.
-        
         from database import SessionLocal
         db_local = SessionLocal()
         try:

@@ -4,41 +4,39 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
+import './ChatWindow.css';
+
 const MessageBubble = ({ role, content }) => {
   const isUser = role === 'user';
   
   return (
-    <div style={{ 
-        display: 'flex', 
-        gap: '1rem', 
-        padding: '1.5rem', 
-        backgroundColor: isUser ? 'transparent' : 'var(--bg-secondary)',
-        borderBottom: '1px solid var(--border-color)'
-    }}>
-      <div style={{ 
-          width: '32px', 
-          height: '32px', 
-          borderRadius: '4px', 
-          background: isUser ? 'var(--bg-tertiary)' : 'var(--accent-color)',
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          flexShrink: 0
-      }}>
+    <div className={`message-bubble ${isUser ? 'user' : 'assistant'}`}>
+      <div className={`message-avatar ${isUser ? 'user' : 'assistant'}`}>
         {isUser ? <User size={18} /> : <Bot size={18} />}
       </div>
       
-      <div style={{ flex: 1, lineHeight: '1.6', fontSize: '0.95rem' }}>
-        <p style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+      <div className="message-content">
+        <p className="message-sender-name">
             {isUser ? 'You' : 'Jarvis'}
         </p>
-        <div style={{ color: 'var(--text-primary)' }}>
+        <div className="markdown-content">
             <ReactMarkdown
                 components={{
                     code({node, inline, className, children, ...props}) {
                         const match = /language-(\w+)/.exec(className || '')
                         return !inline && match ? (
-                            <div style={{ borderRadius: '6px', overflow: 'hidden', margin: '0.5rem 0' }}>
+                            <div className="code-block-wrapper">
+                                <div className="code-block-header">
+                                    <span>{match[1]}</span>
+                                    <button 
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
+                                        }}
+                                        className="copy-code-btn"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
                                 <SyntaxHighlighter
                                     {...props}
                                     style={vscDarkPlus}
@@ -50,12 +48,7 @@ const MessageBubble = ({ role, content }) => {
                                 </SyntaxHighlighter>
                             </div>
                         ) : (
-                            <code {...props} className={className} style={{ 
-                                background: 'var(--bg-tertiary)', 
-                                padding: '2px 5px', 
-                                borderRadius: '4px',
-                                fontFamily: 'monospace'
-                            }}>
+                            <code {...props} className={className + " inline-code"}>
                                 {children}
                             </code>
                         )

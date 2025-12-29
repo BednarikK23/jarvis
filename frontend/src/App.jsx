@@ -64,6 +64,54 @@ function App() {
       }
   };
 
+  const handleUpdateProject = (projectId, updates) => {
+      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, ...updates } : p));
+      if (activeProject && activeProject.id === projectId) {
+          setActiveProject(prev => ({ ...prev, ...updates }));
+      }
+  };
+
+  const handleDeleteProject = async (projectId) => {
+      console.log("Deleting project:", projectId);
+      try {
+          const res = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
+          console.log("Delete project response:", res.status);
+          if (!res.ok) {
+              const text = await res.text();
+              console.error("Delete project error body:", text);
+              throw new Error("Failed to delete project: " + text);
+          }
+          
+          setProjects(prev => prev.filter(p => p.id !== projectId));
+          if (activeProject && activeProject.id === projectId) {
+              setActiveProject(null);
+              setActiveChat(null);
+          }
+      } catch (err) {
+          console.error("Delete project caught error:", err);
+          alert("Error deleting project: " + err.message);
+      }
+  };
+
+  const handleDeleteChat = async (chatId) => {
+      console.log("Deleting chat:", chatId);
+      try {
+          const res = await fetch(`/api/chat/${chatId}`, { method: 'DELETE' });
+          console.log("Delete chat response:", res.status);
+          if (!res.ok) {
+              const text = await res.text();
+              console.error("Delete chat error body:", text);
+              throw new Error("Failed to delete chat: " + text);
+          }
+          
+          setActiveChat(null);
+          window.location.reload(); // Refresh to update sidebar list
+      } catch (err) {
+          console.error("Delete chat caught error:", err);
+          alert("Error deleting chat: " + err.message);
+      }
+  };
+
   return (
     <div className="app-container">
       <Sidebar 
@@ -72,17 +120,19 @@ function App() {
          onSelectProject={setActiveProject}
          onSelectChat={setActiveChat}
          onCreateProject={handleCreateProject}
+         onDeleteProject={handleDeleteProject}
+         onUpdateProject={handleUpdateProject}
       />
       <main className="main-content">
         {activeProject ? (
             activeChat ? (
-                <ChatWindow activeChat={activeChat} />
+                <ChatWindow activeChat={activeChat} onDeleteChat={handleDeleteChat} />
             ) : (
                 <div className="empty-state">
                     <h1>{activeProject.name}</h1>
                     <p>{activeProject.description || "No description"}</p>
                     <button 
-                        style={{ marginTop: '1rem', padding: '0.75rem 1.5rem', background: 'var(--accent-color)', borderRadius: 'var(--radius-md)' }}
+                        style={{ marginTop: '1rem', padding: '0.75rem 1.5rem', background: 'var(--accent-color)', borderRadius: 'var(--radius-md)', color: 'white' }}
                         onClick={handleCreateChat}
                     >
                         Start New Chat
