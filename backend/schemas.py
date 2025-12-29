@@ -57,3 +57,18 @@ class ChatRequest(BaseModel):
     model: str
     messages: List[MessageBase]
     stream: bool = True
+
+class KnowledgeSourceBase(BaseModel):
+    path: str
+
+class KnowledgeSourceCreate(KnowledgeSourceBase):
+    pass
+
+class KnowledgeSource(KnowledgeSourceBase):
+    id: int
+    project_id: int
+    status: str
+    last_indexed: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

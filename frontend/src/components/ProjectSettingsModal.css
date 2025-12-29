@@ -1,5 +1,5 @@
-/* PromptEditor.css */
-.prompt-editor-overlay {
+
+.settings-modal-overlay {
     position: fixed;
     top: 0; 
     left: 0; 
@@ -12,18 +12,18 @@
     z-index: 1000;
 }
 
-.prompt-editor-modal {
+.settings-modal {
     background: var(--bg-secondary);
-    width: 600px;
-    max-width: 90%;
+    width: 650px;
+    max-width: 95%;
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
-    max-height: 80vh;
+    max-height: 85vh;
 }
 
-.prompt-editor-header {
+.settings-modal-header {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
     display: flex;
@@ -31,13 +31,13 @@
     align-items: center;
 }
 
-.prompt-editor-title {
+.settings-modal-title {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 600;
 }
 
-.prompt-editor-close-btn {
+.settings-modal-close-btn {
     background: none;
     border: none;
     color: var(--text-muted);
@@ -47,74 +47,108 @@
     transition: color 0.2s;
 }
 
-.prompt-editor-close-btn:hover {
+.settings-modal-close-btn:hover {
     color: var(--text-primary);
 }
 
-.prompt-editor-content {
-    padding: 1rem 1.5rem;
-    flex: 1;
-    overflow-y: auto;
-}
-
-.prompt-editor-tabs {
-    margin-bottom: 1rem;
+.settings-modal-tabs {
     display: flex;
-    gap: 1rem;
     border-bottom: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
 }
 
-.prompt-editor-tab {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
+.settings-tab {
+    flex: 1;
+    padding: 1rem;
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-muted);
     transition: all 0.2s;
-}
-
-.prompt-editor-tab.active {
-    border-bottom: 2px solid var(--accent-color);
-    color: var(--accent-color);
-}
-
-.prompt-editor-tab:not(.active) {
     border-bottom: 2px solid transparent;
-    color: var(--text-muted);
 }
 
-.prompt-editor-description {
+.settings-tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.settings-tab.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+    background: var(--bg-secondary);
+}
+
+.settings-modal-content {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Prompt Section Styles */
+.prompt-sub-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.prompt-sub-tab {
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
     font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.prompt-editor-textarea {
+.prompt-sub-tab.active {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: white;
+}
+
+.prompt-desc, .settings-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 0.8rem;
+}
+
+.settings-textarea {
     width: 100%;
     background: var(--bg-tertiary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding: 0.5rem;
+    padding: 0.8rem;
     font-size: 0.9rem;
     resize: vertical;
     outline: none;
 }
 
-.prompt-editor-textarea.json {
+.settings-textarea.json {
     height: 300px;
     font-family: monospace;
 }
 
-.prompt-editor-textarea.text {
+.settings-textarea.text {
     height: 200px;
-    font-family: inherit;
 }
 
-.prompt-editor-error {
+.settings-textarea:focus {
+    border-color: var(--accent-color);
+}
+
+.settings-error {
     margin-top: 1rem;
     padding: 0.75rem;
     background: rgba(255, 68, 68, 0.1);
@@ -127,31 +161,14 @@
     font-size: 0.9rem;
 }
 
-.prompt-editor-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-color);
+.settings-actions {
+    margin-top: 1.5rem;
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
 }
 
-.prompt-editor-cancel-btn {
-    padding: 0.5rem 1rem;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.2s;
-}
-
-.prompt-editor-cancel-btn:hover {
-    background: var(--bg-tertiary);
-}
-
-.prompt-editor-save-btn {
-    padding: 0.5rem 1rem;
+.settings-save-btn {
+    padding: 0.6rem 1.2rem;
     background: var(--accent-color);
     border: none;
     color: white;
@@ -161,14 +178,14 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
-    transition: opacity 0.2s;
+    font-weight: 500;
 }
 
-.prompt-editor-save-btn:hover {
+.settings-save-btn:hover {
     opacity: 0.9;
 }
 
-.prompt-editor-save-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+.knowledge-section {
+    display: flex;
+    flex-direction: column;
 }

@@ -5,15 +5,14 @@ from typing import List, Generator, Any, Dict
 from database import get_db
 import models
 import schemas
-from services.ollama_client import OllamaClient
-import json
+from services.chat_service import chat_service
 
 router = APIRouter(
     prefix="/api/chat",
     tags=["chat"]
 )
 
-ollama_client = OllamaClient()
+
 
 @router.post("/new", response_model=schemas.Chat)
 def create_chat(chat_data: schemas.ChatCreate, db: Session = Depends(get_db)) -> models.Chat:
@@ -139,12 +138,6 @@ def send_message(chat_id: int, request: schemas.ChatRequest, db: Session = Depen
     Raises:
         HTTPException: If chat not found or request is invalid.
     """
-    chat = db.query(models.Chat).filter(models.Chat.id == chat_id).first()
-    if not chat:
-        raise HTTPException(status_code=404, detail="Chat not found")
-
-    # 1. Save User Message
-    # We take the LAST message from the request as the new user message
     if not request.messages:
         raise HTTPException(status_code=400, detail="No messages provided")
     
@@ -152,38 +145,18 @@ def send_message(chat_id: int, request: schemas.ChatRequest, db: Session = Depen
     if last_msg.role != "user":
          raise HTTPException(status_code=400, detail="Last message must be from user")
 
-    user_msg_db = models.Message(chat_id=chat_id, role="user", content=last_msg.content)
-    db.add(user_msg_db)
-    db.commit()
-    
-    # 2. Add system prompt if available
-    context_messages = []
-    if chat.project.system_prompt:
-        context_messages.append({"role": "system", "content": chat.project.system_prompt})
-    
-    # Convert Pydantic models to dicts for Ollama
-    for msg in request.messages:
-        context_messages.append({"role": msg.role, "content": msg.content})
+    try:
+        # Delegate to service
+        response_generator = chat_service.process_message(
+            db=db,
+            chat_id=chat_id,
+            message_content=last_msg.content,
+            model=request.model
+        )
+        return StreamingResponse(response_generator, media_type="text/plain")
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        print(f"Error in chat processing: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-    # 3. Stream Response from Ollama
-    def generate() -> Generator[str, None, None]:
-        full_response = ""
-        try:
-            for chunk in ollama_client.chat(model=request.model, messages=context_messages, stream=True):
-                full_response += chunk
-                yield chunk
-        except Exception as e:
-            yield f"\n[Error: {str(e)}]"
-            full_response += f"\n[Error: {str(e)}]"
-        
-        # 4. Save Assistant Response to DB
-        from database import SessionLocal
-        db_local = SessionLocal()
-        try:
-            asst_msg_db = models.Message(chat_id=chat_id, role="assistant", content=full_response)
-            db_local.add(asst_msg_db)
-            db_local.commit()
-        finally:
-            db_local.close()
-
-    return StreamingResponse(generate(), media_type="text/plain")

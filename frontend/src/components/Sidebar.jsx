@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Package, MessageSquare, Plus, Trash2, Settings } from 'lucide-react';
 
-import PromptEditor from './PromptEditor';
+import ProjectSettingsModal from './ProjectSettingsModal';
 import ProjectItem from './ProjectItem';
 
 import './Sidebar.css';
@@ -95,11 +95,11 @@ const Sidebar = ({
       </div>
 
       {editingProject && (
-          <PromptEditor 
+          <ProjectSettingsModal 
             projectId={editingProject.id}
             currentPrompt={editingProject.system_prompt}
             onClose={() => setEditingProject(null)}
-            onSave={handleUpdatePrompt}
+            onSavePrompt={handleUpdatePrompt}
           />
       )}
     </div>

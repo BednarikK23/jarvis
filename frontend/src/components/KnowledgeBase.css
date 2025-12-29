@@ -1,0 +1,130 @@
+
+.knowledge-base {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.kb-add-section {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.kb-input {
+    flex: 1;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.6rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.kb-input:focus {
+    border-color: var(--accent-color);
+}
+
+.kb-add-btn {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.kb-add-btn:hover {
+    opacity: 0.9;
+}
+
+.kb-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.kb-item {
+    background: var(--bg-tertiary);
+    padding: 0.8rem;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+}
+
+.kb-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    overflow: hidden;
+}
+
+.kb-path {
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;
+}
+
+.kb-status {
+    display: flex;
+    font-size: 0.75rem;
+}
+
+.status-indexed { color: #4ade80; display: flex; align-items: center; gap: 4px; }
+.status-indexing { color: #fbbf24; display: flex; align-items: center; gap: 4px; }
+.status-pending { color: var(--text-muted); }
+.status-error { color: var(--error-color); }
+
+.kb-delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.kb-delete-btn:hover {
+    color: var(--error-color);
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.kb-error {
+    color: var(--error-color);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 68, 68, 0.1);
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.kb-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}

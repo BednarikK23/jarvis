@@ -2,12 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from database import engine, Base
-from routers import models, chat, projects
+from routers import models, chat, projects, knowledge
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI(title="Jarvis Backend")
+
+# Mount static directory for plots
+app.mount("/static", StaticFiles(directory="../static"), name="static")
 
 # Configure CORS
 origins = [
@@ -26,6 +31,7 @@ app.add_middleware(
 app.include_router(models.router)
 app.include_router(projects.router)
 app.include_router(chat.router)
+app.include_router(knowledge.router)
 
 @app.get("/")
 def read_root():

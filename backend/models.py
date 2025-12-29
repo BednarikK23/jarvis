@@ -15,6 +15,7 @@ class Project(Base):
     system_prompt = Column(Text, nullable=True)
     
     chats = relationship("Chat", back_populates="project")
+    knowledge_sources = relationship("KnowledgeSource", back_populates="project", cascade="all, delete-orphan")
 
 class Chat(Base):
     __tablename__ = "chats"
@@ -37,3 +38,14 @@ class Message(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     chat = relationship("Chat", back_populates="messages")
+
+class KnowledgeSource(Base):
+    __tablename__ = "knowledge_sources"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    path = Column(String, nullable=False)
+    status = Column(String, default="pending") # pending, indexed, error
+    last_indexed = Column(DateTime, nullable=True)
+
+    project = relationship("Project", back_populates="knowledge_sources")
