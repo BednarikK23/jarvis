@@ -70,8 +70,10 @@ const ChatWindow = ({ activeChat }) => {
               // Update last message
               setMessages(prev => {
                   const newMsgs = [...prev];
-                  const lastMsg = newMsgs[newMsgs.length - 1];
+                  const lastMsgIndex = newMsgs.length - 1;
+                  const lastMsg = { ...newMsgs[lastMsgIndex] };
                   lastMsg.content += chunk;
+                  newMsgs[lastMsgIndex] = lastMsg;
                   return newMsgs;
               });
           }

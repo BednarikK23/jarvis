@@ -10,16 +10,24 @@ router = APIRouter(
     tags=["projects"]
 )
 
+import json
+import os
+
+# Load prompts
+PROMPTS_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "prompts.json")
+try:
+    with open(PROMPTS_FILE, "r") as f:
+        SYSTEM_PROMPTS = json.load(f)
+except Exception as e:
+    print(f"Warning: Could not load prompts.json: {e}")
+    SYSTEM_PROMPTS = {}
+
 @router.post("/", response_model=schemas.Project)
 def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)):
-    # Default Jarvis Personality
+    # Default Jarvis Personality from JSON
     if not project.system_prompt:
-        project.system_prompt = (
-            "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System). "
-            "You are a helpful, witty, and precise AI assistant. "
-            "Always address the user as 'Sir'. "
-            "Keep your responses concise and efficient, just like the original AI from Iron Man."
-        )
+        default_persona = SYSTEM_PROMPTS.get("default", {})
+        project.system_prompt = default_persona.get("system_prompt", "You are a helpful AI assistant.")
     
     db_project = models.Project(**project.model_dump())
     db.add(db_project)
