@@ -72,3 +72,45 @@ class KnowledgeSource(KnowledgeSourceBase):
 
     class Config:
         from_attributes = True
+
+# --- Tools Schemas ---
+
+# Todo
+class TodoItem(BaseModel):
+    id: str
+    text: str
+    completed: bool = False
+    created_at: str
+
+class TodoCreate(BaseModel):
+    text: str
+
+class TodoUpdate(BaseModel):
+    text: Optional[str] = None
+    completed: Optional[bool] = None
+
+# Calendar
+class CalendarEvent(BaseModel):
+    id: str
+    title: str
+    start: str # ISO format
+    end: str   # ISO format
+    description: Optional[str] = ""
+    location: Optional[str] = ""
+    color: str = "#3b82f6" # Default blue
+
+class CalendarEventCreate(BaseModel):
+    title: str
+    start: str
+    end: str
+    description: Optional[str] = ""
+    location: Optional[str] = ""
+    color: str = "#3b82f6"
+
+class CalendarEventUpdate(BaseModel):
+    title: Optional[str] = None
+    start: Optional[str] = None
+    end: Optional[str] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    color: Optional[str] = None

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from database import engine, Base
-from routers import models, chat, projects, knowledge
+from routers import models, chat, projects, knowledge, tools
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -32,6 +32,7 @@ app.include_router(models.router)
 app.include_router(projects.router)
 app.include_router(chat.router)
 app.include_router(knowledge.router)
+app.include_router(tools.router)
 
 @app.get("/")
 def read_root():

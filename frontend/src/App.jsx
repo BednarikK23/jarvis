@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import { fetchProjects, createProject, createChat, fetchChatHistory } from './api';
+import ToolsPanel from './components/Tools/ToolsPanel';
+import { PanelRight } from 'lucide-react';
 import './App.css';
 
 function App() {
@@ -9,6 +11,8 @@ function App() {
   const [activeProject, setActiveProject] = useState(null);
   const [activeChat, setActiveChat] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTools, setShowTools] = useState(false);
+
 
   const [projectChats, setProjectChats] = useState({}); // { projectId: [chats] }
 
@@ -223,6 +227,17 @@ function App() {
             </div>
         )}
       </main>
+
+      
+      <button 
+        className="tools-toggle-btn"
+        onClick={() => setShowTools(!showTools)}
+        title="Toggle Tools"
+      >
+        <PanelRight size={20} />
+      </button>
+      
+      <ToolsPanel isOpen={showTools} onClose={() => setShowTools(false)} />
     </div>
   );
 }
