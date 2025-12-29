@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, MessageSquare, Trash2, Settings } from 'lucide-react';
+import { Package, MessageSquare, Trash2, Settings, Plus, Edit2 } from 'lucide-react';
 
 const ProjectItem = ({ 
     project, 
@@ -9,7 +9,9 @@ const ProjectItem = ({
     toggleProject, 
     onSelectChat, 
     setEditingProject, 
-    onDeleteProject 
+    onDeleteProject,
+    onCreateChat,
+    onRenameChat
 }) => {
     const isActive = activeProject?.id === project.id;
     const isExpanded = expandedProject === project.id;
@@ -30,6 +32,16 @@ const ProjectItem = ({
                 
                 {/* Project Actions */}
                 <div className="project-actions">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onCreateChat(project.id);
+                        }}
+                        className="icon-btn"
+                        title="New Chat"
+                    >
+                        <Plus size={14} />
+                    </button>
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -63,8 +75,22 @@ const ProjectItem = ({
                             onClick={() => onSelectChat(chat)}
                             className="chat-item"
                         >
-                            <MessageSquare size={14} />
-                            {chat.title || "Untitled Chat"}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+                                <MessageSquare size={14} style={{flexShrink: 0}} />
+                                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {chat.title || "Untitled Chat"}
+                                </span>
+                            </div>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onRenameChat(chat.id, chat.title);
+                                }}
+                                className="chat-edit-btn"
+                                title="Rename Chat"
+                            >
+                                <Edit2 size={12} />
+                            </button>
                         </div>
                     ))}
                      {(!chats || chats.length === 0) && (

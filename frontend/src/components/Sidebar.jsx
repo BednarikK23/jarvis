@@ -1,18 +1,29 @@
 
 import React, { useState } from 'react';
 import { Package, MessageSquare, Plus, Trash2, Settings } from 'lucide-react';
-import { fetchChatHistory } from '../api';
+
 import PromptEditor from './PromptEditor';
 import ProjectItem from './ProjectItem';
 
 import './Sidebar.css';
 
-const Sidebar = ({ projects, activeProject, onSelectProject, onSelectChat, onCreateProject, onDeleteProject, onUpdateProject }) => {
+const Sidebar = ({ 
+    projects, 
+    projectChats, 
+    loadProjectChats, 
+    activeProject, 
+    onSelectProject, 
+    onSelectChat, 
+    onCreateProject, 
+    onCreateChat,
+    onDeleteProject, 
+    onUpdateProject,
+    onRenameChat
+}) => {
   const [expandedProject, setExpandedProject] = useState(null);
-  const [projectChats, setProjectChats] = useState({}); // { projectId: [chats] }
   const [editingProject, setEditingProject] = useState(null); // project object
 
-  const toggleProject = async (projectId) => {
+  const toggleProject = (projectId) => {
     if (expandedProject === projectId) {
       setExpandedProject(null);
     } else {
@@ -20,15 +31,8 @@ const Sidebar = ({ projects, activeProject, onSelectProject, onSelectChat, onCre
         const project = projects.find(p => p.id === projectId);
         onSelectProject(project);
         
-        // Fetch chats
-        if (!projectChats[projectId]) {
-            try {
-                const chats = await fetchChatHistory(projectId);
-                setProjectChats(prev => ({ ...prev, [projectId]: chats }));
-            } catch (err) {
-                console.error("Failed to load chats", err);
-            }
-        }
+        // Fetch chats via parent
+        loadProjectChats(projectId);
     }
   };
 
@@ -83,6 +87,8 @@ const Sidebar = ({ projects, activeProject, onSelectProject, onSelectChat, onCre
                 onSelectChat={onSelectChat}
                 setEditingProject={setEditingProject}
                 onDeleteProject={onDeleteProject}
+                onCreateChat={onCreateChat}
+                onRenameChat={onRenameChat}
             />
         ))}
         {projects.length === 0 && <p className="project-empty-state">No projects yet.</p>}

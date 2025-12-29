@@ -10,6 +10,8 @@ function App() {
   const [activeChat, setActiveChat] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [projectChats, setProjectChats] = useState({}); // { projectId: [chats] }
+
   useEffect(() => {
     loadProjects();
   }, []);
@@ -18,14 +20,22 @@ function App() {
     try {
       const data = await fetchProjects();
       setProjects(data);
-      if (data.length > 0 && !activeProject) {
-        // Optionally auto-select first project? No, let user choose.
-      }
+      // Optional: auto-load chats for active project if we had persistence
       setLoading(false);
     } catch (err) {
       console.error("Failed to load projects", err);
       setLoading(false);
     }
+  };
+
+  const loadProjectChats = async (projectId) => {
+      if (projectChats[projectId]) return; // already loaded
+      try {
+          const chats = await fetchChatHistory(projectId);
+          setProjectChats(prev => ({ ...prev, [projectId]: chats }));
+      } catch (err) {
+          console.error("Failed to load chats", err);
+      }
   };
 
   const handleCreateProject = async () => {
@@ -38,29 +48,78 @@ function App() {
           const newProject = await createProject(name, description, "");
           setProjects([newProject, ...projects]);
           setActiveProject(newProject);
+          
+          // UX: Immediately create a new chat for this project
+          try {
+              const newChat = await createChat(newProject.id, "New Chat");
+              setProjectChats(prev => ({ 
+                  ...prev, 
+                  [newProject.id]: [newChat] 
+              }));
+              setActiveChat(newChat);
+          } catch (chatErr) {
+              console.error("Failed to auto-create chat", chatErr);
+          }
       } catch (err) {
           alert("Failed to create project");
           console.error(err);
       }
   };
 
-  const handleCreateChat = async () => {
-      if (!activeProject) return;
+  const handleCreateChat = async (projectIdOverride = null) => {
+      const targetProjectId = projectIdOverride || activeProject?.id;
+      if (!targetProjectId) return;
+
       const title = prompt("Chat Title (optional):") || "New Chat";
+      
       try {
-          const newChat = await createChat(activeProject.id, title);
-          // We need to refresh chats or let Sidebar handle it. 
-          // Ideally Sidebar should manage chats fetching or we pass a callback.
-          // For now, let's just set it as active and let ChatWindow load it?
-          // But Sidebar won't show it unless we reload chats list there.
-          // Let's pass a trigger or reload function to Sidebar.
-          setActiveChat(newChat);
-          // Quick hack: reload projects/chats? No, better state management needed.
-          // We'll pass `projects` to Sidebar, but sidebar needs to know a new chat exists for the active project.
-          // We'll add a refreshKey or similar.
-          window.location.reload(); // BRUTE FORCE for MVP speed
+          const newChat = await createChat(targetProjectId, title);
+          
+          setProjectChats(prev => {
+              const existing = prev[targetProjectId] || [];
+              return { ...prev, [targetProjectId]: [newChat, ...existing] };
+          });
+          
+          // If created for active project, switch to it. If for another project, maybe just expand it?
+          // For now, let's switch to it if it's the active project
+          if (activeProject && activeProject.id === targetProjectId) {
+               setActiveChat(newChat);
+          }
       } catch (err) {
           console.error(err);
+          alert("Failed to create chat");
+      }
+  };
+
+  const handleRenameChat = async (chatId, currentTitle) => {
+      const newTitle = prompt("Rename Chat:", currentTitle);
+      if (!newTitle || newTitle === currentTitle) return;
+
+      try {
+          const res = await fetch(`/api/chat/${chatId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ project_id: 0, title: newTitle }) // project_id ignored by backend update logic but required by schema
+          });
+          
+          if (!res.ok) throw new Error("Failed to update chat");
+          const updatedChat = await res.json();
+
+          // Update state
+          setProjectChats(prev => {
+              const next = { ...prev };
+              for (const pid in next) {
+                   next[pid] = next[pid].map(c => c.id === chatId ? updatedChat : c);
+              }
+              return next;
+          });
+          
+          if (activeChat && activeChat.id === chatId) {
+              setActiveChat(updatedChat);
+          }
+      } catch (err) {
+          console.error(err);
+          alert("Failed to rename chat");
       }
   };
 
@@ -72,43 +131,56 @@ function App() {
   };
 
   const handleDeleteProject = async (projectId) => {
-      console.log("Deleting project:", projectId);
+      if (!window.confirm("Are you sure you want to delete this project?")) return;
+      
       try {
           const res = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
-          console.log("Delete project response:", res.status);
-          if (!res.ok) {
-              const text = await res.text();
-              console.error("Delete project error body:", text);
-              throw new Error("Failed to delete project: " + text);
-          }
+          if (!res.ok) throw new Error("Failed to delete project");
           
           setProjects(prev => prev.filter(p => p.id !== projectId));
           if (activeProject && activeProject.id === projectId) {
               setActiveProject(null);
               setActiveChat(null);
           }
+          // Cleanup chats from state
+          setProjectChats(prev => {
+              const next = { ...prev };
+              delete next[projectId];
+              return next;
+          });
       } catch (err) {
-          console.error("Delete project caught error:", err);
-          alert("Error deleting project: " + err.message);
+          console.error(err);
+          alert("Error deleting project");
       }
   };
 
   const handleDeleteChat = async (chatId) => {
-      console.log("Deleting chat:", chatId);
+      if (!window.confirm("Delete this chat?")) return;
+      
       try {
           const res = await fetch(`/api/chat/${chatId}`, { method: 'DELETE' });
-          console.log("Delete chat response:", res.status);
-          if (!res.ok) {
-              const text = await res.text();
-              console.error("Delete chat error body:", text);
-              throw new Error("Failed to delete chat: " + text);
+          if (!res.ok) throw new Error("Failed to delete chat");
+          
+          if (activeChat && activeChat.id === chatId) {
+              setActiveChat(null);
           }
           
-          setActiveChat(null);
-          window.location.reload(); // Refresh to update sidebar list
+          // Update state without reload
+          // We need to find which project this chat belongs to. 
+          // activeChat has project_id, but if we deleted a non-active chat?
+          // We can iterate or rely on the fact that we usually delete active chats or from list.
+          // Since we lifted state, we can iterate.
+          setProjectChats(prev => {
+              const next = { ...prev };
+              for (const pid in next) {
+                  next[pid] = next[pid].filter(c => c.id !== chatId);
+              }
+              return next;
+          });
+          
       } catch (err) {
-          console.error("Delete chat caught error:", err);
-          alert("Error deleting chat: " + err.message);
+          console.error(err);
+          alert("Error deleting chat");
       }
   };
 
@@ -116,12 +188,16 @@ function App() {
     <div className="app-container">
       <Sidebar 
          projects={projects}
+         projectChats={projectChats}
+         loadProjectChats={loadProjectChats}
          activeProject={activeProject}
          onSelectProject={setActiveProject}
          onSelectChat={setActiveChat}
          onCreateProject={handleCreateProject}
+         onCreateChat={handleCreateChat}
          onDeleteProject={handleDeleteProject}
          onUpdateProject={handleUpdateProject}
+         onRenameChat={handleRenameChat}
       />
       <main className="main-content">
         {activeProject ? (

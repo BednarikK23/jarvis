@@ -97,7 +97,31 @@ def delete_chat(chat_id: int, db: Session = Depends(get_db)) -> Dict[str, str]:
     
     db.delete(chat)
     db.commit()
+    db.delete(chat)
+    db.commit()
     return {"status": "success", "message": "Chat deleted"}
+
+@router.put("/{chat_id}", response_model=schemas.Chat)
+def update_chat(chat_id: int, chat_update: schemas.ChatCreate, db: Session = Depends(get_db)) -> models.Chat:
+    """
+    Update a chat's title.
+    
+    Args:
+        chat_id (int): ID of the chat.
+        chat_update (schemas.ChatCreate): New data (title).
+        db (Session): Database session.
+        
+    Returns:
+        models.Chat: The updated chat.
+    """
+    chat = db.query(models.Chat).filter(models.Chat.id == chat_id).first()
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    
+    chat.title = chat_update.title
+    db.commit()
+    db.refresh(chat)
+    return chat
 
 @router.post("/{chat_id}/message")
 def send_message(chat_id: int, request: schemas.ChatRequest, db: Session = Depends(get_db)) -> StreamingResponse:

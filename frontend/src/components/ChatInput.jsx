@@ -19,6 +19,7 @@ const ChatInput = ({ input, setInput, handleSend, handleStop, loading, streaming
                 }}
                 placeholder="Message Jarvis..." 
                 className="chat-input-textarea"
+                autoFocus
             />
             {streaming ? (
                 <button 
