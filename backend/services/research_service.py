@@ -18,10 +18,40 @@ class ResearchService:
         "Hugging Face": "https://huggingface.co/blog/feed.xml"
     }
 
-    def get_latest_papers(self, limit: int = 5) -> str:
+    def download_paper(self, paper_id: str, pdf_url: str) -> str:
         """
-        Fetches the latest papers from Arxiv in AI/ML.
-        Returns a formatted markdown string.
+        Downloads a paper's PDF to local storage.
+        Returns absolute path to the file.
+        """
+        import requests
+        import os
+        
+        # Clean ID for filename
+        safe_id = paper_id.replace("http://arxiv.org/abs/", "").replace("/", "_")
+        filename = f"{safe_id}.pdf"
+        
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data/papers")
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+            
+        file_path = os.path.join(data_dir, filename)
+        
+        if os.path.exists(file_path):
+            return file_path
+            
+        try:
+            response = requests.get(pdf_url)
+            response.raise_for_status()
+            with open(file_path, "wb") as f:
+                f.write(response.content)
+            return file_path
+        except Exception as e:
+            print(f"Error downloading PDF {pdf_url}: {e}")
+            return None
+
+    def get_latest_papers_structured(self, limit: int = 5) -> List[Dict]:
+        """
+        Fetches papers and returns structured data including local path.
         """
         try:
             client = arxiv.Client()
@@ -32,23 +62,42 @@ class ResearchService:
             )
             
             results = list(client.results(search))
+            papers = []
             
-            if not results:
-                return "No new papers found."
-                
-            summary = ["**Latest Arxiv Papers:**"]
             for r in results:
-                summary.append(f"- **[{r.title}]({r.entry_id})**")
-                # Add a concise summary line? Limit to 200 chars
-                abstract = r.summary.replace("\n", " ")
-                if len(abstract) > 200:
-                    abstract = abstract[:197] + "..."
-                summary.append(f"  > *{abstract}*")
+                # Download PDF immediately
+                # Note: pdf_url is usually r.pdf_url
+                pdf_path = self.download_paper(r.entry_id, r.pdf_url)
+                
+                paper = {
+                    "title": r.title,
+                    "url": r.entry_id,
+                    "abstract": r.summary,
+                    "pdf_path": pdf_path,
+                    "authors": [a.name for a in r.authors]
+                }
+                papers.append(paper)
             
-            return "\n".join(summary)
+            return papers
             
         except Exception as e:
-            return f"Error fetching Arxiv papers: {str(e)}"
+            print(f"Error fetching Arxiv papers: {e}")
+            return []
+
+    def get_latest_papers(self, limit: int = 5) -> str:
+        # Backward compatibility or just use structured
+        # For now let's keep it but maybe unused
+        papers = self.get_latest_papers_structured(limit)
+        if not papers: return "No new papers found."
+        
+        summary = ["**Latest Arxiv Papers:**"]
+        for p in papers:
+            summary.append(f"- **[{p['title']}]({p['url']})**")
+            abstract = p['abstract'].replace("\n", " ")
+            if len(abstract) > 200:
+                abstract = abstract[:197] + "..."
+            summary.append(f"  > *{abstract}*")
+        return "\n".join(summary)
 
     def get_tech_blog_updates(self) -> str:
         """

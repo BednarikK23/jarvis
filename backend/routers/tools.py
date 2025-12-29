@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
-import datetime
-
 from database import get_db
 import models
 import schemas
@@ -11,7 +9,6 @@ from services.finance_service import FinanceService
 from services.research_service import ResearchService
 from services.weather_service import WeatherService
 from services.digest_service import DigestService
-from services.chat_service import chat_service
 from services.json_storage import JsonStorageService
 
 router = APIRouter(
@@ -36,61 +33,31 @@ class DigestResponse(BaseModel):
     message: str
 
 @router.post("/digest", response_model=DigestResponse)
-async def create_digest(db: Session = Depends(get_db)):
+def create_digest(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """
     Triggers the generation of a daily digest.
     """
-    # 1. Get or Create Project
-    project = db.query(models.Project).filter(models.Project.name == PROJECT_NAME).first()
-    if not project:
-        project = models.Project(name=PROJECT_NAME, system_prompt="You are a helpful assistant generating daily digests. Use the provided data to create a comprehensive, readable markdown report.")
-        db.add(project)
-        db.commit()
-        db.refresh(project)
-    
-    # 2. Fetch Data
-    raw_data = await digest_service.get_digest_data()
-    
-    # 3. Create Chat
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    chat_title = f"Digest: {date_str}"
-    
-    chat = models.Chat(project_id=project.id, title=chat_title)
-    db.add(chat)
-    db.commit()
-    db.refresh(chat)
-    
-    # 4. Generate Content via ChatService
-    prompt = f"""
-Please generate a Daily Digest based on the following gathered data.
-Summarize the key points from finance, news, and research papers.
-End with the weather forecast.
-
-<details>
-<summary>Click to view raw data source</summary>
-
-{raw_data}
-
-</details>
-    """
-    
-    model = "qwen2.5:14b" 
-    
     try:
-        gen = chat_service.process_message(db, chat.id, prompt, model)
-        for _ in gen: pass
+        chat_id = digest_service.generate_daily_digest(db, PROJECT_NAME, background_tasks)
+        return DigestResponse(chat_id=chat_id, message="Digest generated successfully")
     except Exception as e:
-        print(f"Error generating digest: {e}")
-        
-    return DigestResponse(chat_id=chat.id, message="Digest generated successfully")
+        # In a real app we might want to log this properly
+        raise HTTPException(status_code=500, detail=f"Failed to generate digest: {str(e)}")
 
 @router.get("/digest/history", response_model=List[schemas.Chat])
 def get_digest_history(db: Session = Depends(get_db)):
     project = db.query(models.Project).filter(models.Project.name == PROJECT_NAME).first()
     if not project:
         return []
-    chats = db.query(models.Chat).filter(models.Chat.project_id == project.id).order_by(models.Chat.created_at.desc()).all()
+    chats = db.query(models.Chat).filter(models.Chat.project_id == project.id).order_by(models.Chat.created_at.desc()).limit(30).all()
     return chats
+
+class WeatherResponse(BaseModel):
+    summary: str
+
+@router.get("/weather", response_model=WeatherResponse)
+def get_weather():
+    return {"summary": weather_service.get_forecast()}
 
 # --- Todo Endpoints ---
 

@@ -66,12 +66,30 @@ class FinanceService:
                 return "No recent market news found."
                 
             summary_lines = ["**Latest Market News:**"]
-            # Take top 5
-            for item in news_items[:5]:
-                title = item.get("title", "No Title")
-                link = item.get("link", "#")
-                # publisher = item.get("publisher", "Unknown")
+            # Take top 10 as requested
+            count = 0
+            for item in news_items:
+                if count >= 10:
+                    break
+                    
+                # Handle nested structure (yfinance new format)
+                content = item.get("content", {}) if "content" in item else item
+                
+                title = content.get("title")
+                if not title:
+                    continue
+                    
+                # Try to find a link
+                link = "#"
+                if "clickThroughUrl" in content and content["clickThroughUrl"]:
+                    link = content["clickThroughUrl"].get("url", "#")
+                elif "canonicalUrl" in content and content["canonicalUrl"]:
+                    link = content["canonicalUrl"].get("url", "#")
+                elif "link" in content:
+                    link = content.get("link", "#")
+                    
                 summary_lines.append(f"- [{title}]({link})")
+                count += 1
                 
             return "\n".join(summary_lines)
             

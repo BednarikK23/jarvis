@@ -1,0 +1,51 @@
+.weather-widget {
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    margin-top: auto; /* Push to bottom if container allows */
+}
+
+.weather-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.weather-header h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.refresh-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.refresh-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-hover);
+}
+
+.weather-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.weather-text strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
