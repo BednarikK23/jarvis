@@ -1,0 +1,124 @@
+.digest-widget {
+    background-color: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.digest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.digest-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.generate-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.generate-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.generate-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.digest-history h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.history-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    font-size: 0.9rem;
+}
+
+.history-list li:hover {
+    background-color: var(--bg-hover);
+}
+
+.history-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    min-width: 80px;
+}
+
+.history-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.arrow-icon {
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.history-list li:hover .arrow-icon {
+    opacity: 1;
+    transform: translateX(2px);
+}
+
+.empty-history {
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 12px;
+    font-style: italic;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

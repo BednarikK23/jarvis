@@ -188,6 +188,29 @@ function App() {
       }
   };
 
+  const handleOpenDigestChat = async (chatId) => {
+      try {
+          const res = await fetch(`/api/chat/${chatId}`);
+          if (!res.ok) throw new Error("Failed to fetch chat");
+          const chat = await res.json();
+          
+          // Switch project context if needed
+          if (!activeProject || activeProject.id !== chat.project_id) {
+              const pRes = await fetch(`/api/projects/${chat.project_id}`);
+              if (pRes.ok) {
+                  const project = await pRes.json();
+                  setActiveProject(project);
+                  loadProjectChats(project.id);
+              }
+          }
+          
+          setActiveChat(chat);
+          setShowTools(false);
+      } catch (err) {
+          console.error("Failed to open chat", err);
+      }
+  };
+
   return (
     <div className="app-container">
       <Sidebar 
@@ -237,7 +260,11 @@ function App() {
         <PanelRight size={20} />
       </button>
       
-      <ToolsPanel isOpen={showTools} onClose={() => setShowTools(false)} />
+      <ToolsPanel 
+        isOpen={showTools} 
+        onClose={() => setShowTools(false)} 
+        onOpenChat={handleOpenDigestChat}
+      />
     </div>
   );
 }

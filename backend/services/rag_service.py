@@ -33,13 +33,14 @@ class RAGService:
         name = f"project_{project_id}"
         return self.chroma_client.get_or_create_collection(name=name)
 
-    def _delete_collection(self, project_id: int):
+    def delete_project_index(self, project_id: int):
         """Delete a project's index collection."""
         name = f"project_{project_id}"
         try:
             self.chroma_client.delete_collection(name=name)
-        except:
-            pass
+            print(f"Deleted ChromaDB collection for project {project_id}")
+        except Exception as e:
+            print(f"Error deleting collection for project {project_id}: {e}")
 
     def ingest_source(self, project_id: int, source_path: str):
         """

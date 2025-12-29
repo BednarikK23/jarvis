@@ -6,6 +6,7 @@ import os
 from database import get_db
 import models
 import schemas
+from services.rag_service import rag_service
 
 router = APIRouter(
     prefix="/api/projects",
@@ -102,6 +103,9 @@ def delete_project(project_id: int, db: Session = Depends(get_db)) -> Dict[str, 
     # Manually deleting chats to ensure cleanup
     for chat in project.chats:
         db.delete(chat)
+    
+    # Clean up RAG index
+    rag_service.delete_project_index(project_id)
         
     db.delete(project)
     db.commit()

@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from typing import List, Dict, Any, Optional
 
 class JsonStorageService:
@@ -31,10 +32,13 @@ class JsonStorageService:
     def get_all(self) -> List[Dict[str, Any]]:
         return self._read_data()
 
-    def add_item(self, item: Dict[str, Any]):
+    def add_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
         data = self._read_data()
+        if "id" not in item:
+            item["id"] = str(uuid.uuid4())
         data.append(item)
         self._write_data(data)
+        return item
 
     def update_item(self, item_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         data = self._read_data()
