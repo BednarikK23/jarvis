@@ -9,6 +9,7 @@ import schemas
 from services.ollama_client import OllamaClient
 from services.rag_service import rag_service
 from services.analysis_service import analysis_service
+from services.web_service import web_service
 from prompts import DATA_ANALYSIS_PROMPT
 
 class ChatService:
@@ -89,6 +90,27 @@ class ChatService:
 
     def _build_context(self, db: Session, chat: models.Chat, last_user_msg: str) -> List[Dict[str, str]]:
         messages = []
+        
+        # Web Search Integration
+        if last_user_msg.startswith("/search "):
+            query = last_user_msg.replace("/search ", "").strip()
+            results = web_service.search_web(query)
+            if results:
+                search_context = "\n\n".join([f"Title: {r['title']}\nLink: {r['href']}\nSnippet: {r['body']}" for r in results])
+                web_prompt = f"\n\nResults from web search for '{query}':\n\n{search_context}\n\nUse these results to answer the user's request."
+                messages.append({"role": "system", "content": web_prompt})
+            else:
+                messages.append({"role": "system", "content": f"\n\nWeb search for '{query}' returned no results or failed due to rate limiting. Apologize to the user and unable to retrieve external information."})
+                
+        # URL Scraping Integration
+        # Regex to find http/https URLs
+        urls = re.findall(r'(https?://[^\s]+)', last_user_msg)
+        for url in urls:
+            # Skip internal API calls if any (simplistic check)
+            content = web_service.scrape_url(url)
+            if content:
+                scrape_prompt = f"\n\nContent from {url}:\n\n{content}\n\n"
+                messages.append({"role": "system", "content": scrape_prompt})
         
         # System Prompt
         if chat.project.system_prompt:

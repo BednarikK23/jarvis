@@ -55,7 +55,10 @@ npm run dev
 - `frontend/`: React application (JavaScript/Vite)
 - `data/`: Local database (SQLite) and storage
 
-## Features (Phase A MVP)
+## Features
 - **Projects**: Create projects to organize your chats.
 - **Chat**: Talk to local LLMs (e.g., Qwen).
 - **History**: Chats are saved locally in `data/jarvis.db`.
+- **Web Capabilities**:
+    - **Search**: Type `/search <query>` in the chat to search the web. The system attempts to use DuckDuckGo, then Google, and falls back to Wikipedia if necessary.
+    - **Auto-Scrape**: Paste any HTTP/HTTPS link in your message. The content will be largely fetched, cleaned, and injected into the conversation context for the AI to read.

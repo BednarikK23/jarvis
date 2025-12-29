@@ -30,3 +30,4 @@ Thumbs.db
 # Enviroment variables
 .env
 data/
+plots/
