@@ -1,0 +1,174 @@
+/* PromptEditor.css */
+.prompt-editor-overlay {
+    position: fixed;
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.prompt-editor-modal {
+    background: var(--bg-secondary);
+    width: 600px;
+    max-width: 90%;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.prompt-editor-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.prompt-editor-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.prompt-editor-close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    transition: color 0.2s;
+}
+
+.prompt-editor-close-btn:hover {
+    color: var(--text-primary);
+}
+
+.prompt-editor-content {
+    padding: 1rem 1.5rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.prompt-editor-tabs {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.prompt-editor-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.prompt-editor-tab.active {
+    border-bottom: 2px solid var(--accent-color);
+    color: var(--accent-color);
+}
+
+.prompt-editor-tab:not(.active) {
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+}
+
+.prompt-editor-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.prompt-editor-textarea {
+    width: 100%;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    resize: vertical;
+    outline: none;
+}
+
+.prompt-editor-textarea.json {
+    height: 300px;
+    font-family: monospace;
+}
+
+.prompt-editor-textarea.text {
+    height: 200px;
+    font-family: inherit;
+}
+
+.prompt-editor-error {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid var(--error-color);
+    border-radius: 4px;
+    color: var(--error-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.prompt-editor-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.prompt-editor-cancel-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.prompt-editor-cancel-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.prompt-editor-save-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent-color);
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: opacity 0.2s;
+}
+
+.prompt-editor-save-btn:hover {
+    opacity: 0.9;
+}
+
+.prompt-editor-save-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
