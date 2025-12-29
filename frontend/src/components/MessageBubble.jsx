@@ -1,5 +1,8 @@
 import React from 'react';
 import { User, Bot } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const MessageBubble = ({ role, content }) => {
   const isUser = role === 'user';
@@ -29,8 +32,38 @@ const MessageBubble = ({ role, content }) => {
         <p style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             {isUser ? 'You' : 'Jarvis'}
         </p>
-        <div style={{ whiteSpace: 'pre-wrap', color: 'var(--text-primary)' }}>
-            {content}
+        <div style={{ color: 'var(--text-primary)' }}>
+            <ReactMarkdown
+                components={{
+                    code({node, inline, className, children, ...props}) {
+                        const match = /language-(\w+)/.exec(className || '')
+                        return !inline && match ? (
+                            <div style={{ borderRadius: '6px', overflow: 'hidden', margin: '0.5rem 0' }}>
+                                <SyntaxHighlighter
+                                    {...props}
+                                    style={vscDarkPlus}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    customStyle={{ margin: 0, borderRadius: 0, fontSize: '0.9rem' }}
+                                >
+                                    {String(children).replace(/\n$/, '')}
+                                </SyntaxHighlighter>
+                            </div>
+                        ) : (
+                            <code {...props} className={className} style={{ 
+                                background: 'var(--bg-tertiary)', 
+                                padding: '2px 5px', 
+                                borderRadius: '4px',
+                                fontFamily: 'monospace'
+                            }}>
+                                {children}
+                            </code>
+                        )
+                    }
+                }}
+            >
+                {content}
+            </ReactMarkdown>
         </div>
       </div>
     </div>

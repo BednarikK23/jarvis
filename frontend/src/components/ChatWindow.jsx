@@ -2,12 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import { fetchChat } from '../api';
 import MessageBubble from './MessageBubble';
+import { DEFAULT_MODEL, MAX_CONTEXT_MESSAGES } from '../constants';
 
 const ChatWindow = ({ activeChat }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
+  const [availableModels, setAvailableModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_MODEL);
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -15,6 +18,28 @@ const ChatWindow = ({ activeChat }) => {
         loadChat(activeChat.id);
     }
   }, [activeChat]);
+
+  // Fetch available models on mount
+  useEffect(() => {
+      const fetchModels = async () => {
+          try {
+              const res = await fetch('/api/models/');
+              if (res.ok) {
+                  const data = await res.json();
+                  const models = data.models || [];
+                  setAvailableModels(models);
+                  // Ensure default is in the list, or select first available if not
+                  if (models.length > 0 && !models.includes(DEFAULT_MODEL)) {
+                      setSelectedModel(models[0]);
+                  }
+              }
+          } catch (error) {
+              console.error("Failed to fetch models:", error);
+          }
+      };
+      
+      fetchModels();
+  }, []);
 
   useEffect(() => {
       bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,14 +66,16 @@ const ChatWindow = ({ activeChat }) => {
 
       try {
           // Prepare messages context for the API
-          // We include the full history so far + new message
-          const contextMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
+          // We include the full history so far + new message, but limited to MAX_CONTEXT_MESSAGES
+          const allMessages = [...messages, userMsg];
+          const recentMessages = allMessages.slice(-MAX_CONTEXT_MESSAGES);
+          const contextMessages = recentMessages.map(m => ({ role: m.role, content: m.content }));
           
           const response = await fetch(`/api/chat/${activeChat.id}/message`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                  model: 'qwen2.5-coder:7b', // Defaulting to the coding model requested by user
+                  model: selectedModel, 
                   messages: contextMessages,
                   stream: true
               })
@@ -90,9 +117,32 @@ const ChatWindow = ({ activeChat }) => {
     <div className="chat-window" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
         <div className="chat-header" style={{ padding: '1rem 2rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>{activeChat.title}</h3>
-             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg-tertiary)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                 Model: qwen2.5-coder:7b
-             </span>
+             
+             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Model:</span>
+                <select 
+                    value={selectedModel} 
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    style={{
+                        background: 'var(--bg-tertiary)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '4px',
+                        padding: '0.2rem 0.5rem',
+                        fontSize: '0.8rem',
+                        outline: 'none',
+                        cursor: 'pointer'
+                    }}
+                >
+                    {availableModels.length > 0 ? (
+                        availableModels.map(model => (
+                            <option key={model} value={model}>{model}</option>
+                        ))
+                    ) : (
+                        <option value={selectedModel}>{selectedModel}</option>
+                    )}
+                </select>
+             </div>
         </div>
         
         <div className="messages" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
