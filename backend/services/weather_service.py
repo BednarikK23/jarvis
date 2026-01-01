@@ -9,9 +9,9 @@ class WeatherService:
     
     BASE_URL = "https://api.open-meteo.com/v1/forecast"
     
-    # Default to Prague if no location provided (approximate coords)
-    DEFAULT_LAT = 50.0755
-    DEFAULT_LON = 14.4378
+    # Default to Brno if no location provided (approximate coords)
+    DEFAULT_LAT = 49.1951
+    DEFAULT_LON = 16.6068
     
     def get_forecast(self, lat: float = DEFAULT_LAT, lon: float = DEFAULT_LON) -> str:
         """

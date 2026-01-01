@@ -52,6 +52,11 @@ const MessageBubble = ({ role, content }) => {
                                 {children}
                             </code>
                         )
+                    },
+                    a: ({node, ...props}) => {
+                        return (
+                            <a {...props} target="_blank" rel="noopener noreferrer" className="message-link" />
+                        );
                     }
                 }}
             >

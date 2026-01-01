@@ -1,5 +1,7 @@
 
-DIGEST_LLM_MODEL = "qwen2.5:14b"
+from config import settings
+
+DIGEST_LLM_MODEL = settings.DIGEST_LLM_MODEL
 
 DATA_ANALYSIS_PROMPT = """
 You are a Python Data Analyst.

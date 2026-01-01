@@ -2,7 +2,9 @@ import requests
 from typing import List, Dict, Generator
 import json
 
-OLLAMA_BASE_URL = "http://localhost:11434"
+from config import settings
+
+OLLAMA_BASE_URL = settings.OLLAMA_BASE_URL
 
 class OllamaClient:
     def list_models(self) -> List[str]:

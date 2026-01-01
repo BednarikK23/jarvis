@@ -1,64 +1,79 @@
 # Jarvis Local Assistant
 
-A private, local AI assistant running on your machine using fastAPI, React, and Ollama.
+A private, local AI assistant running on your machine using FastAPI, React, and Ollama.
 
-## prerequisites
-- **Linux** (tested on Mint)
-- **Python 3.12+**
-- **Node.js v18+ & npm**
-- **Ollama** (installed and running with models pulled, e.g., `ollama pull qwen2.5-coder:7b`)
+## Architecture
+*   **Frontend**: React (Vite) + Lucide Icons + CSS Modules.
+*   **Backend**: FastAPI + SQLAlchemy (SQLite) + ChromaDB (Vector Store).
+*   **AI**: Local LLM via **Ollama**.
 
-## Setup
+## Prerequisites
+This project runs on Linux (Mint/Ubuntu) and requires specific system packages.
 
-1. **Clone/Navigate to project**:
-   ```bash
-   cd path/to/jarvis
-   ```
-
-2. **Backend Setup**:
-   The backend uses a Python virtual environment.
-   ```bash
-   # If not already set up
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r backend/requirements.txt
-   ```
-
-## Running the App
-
-### 1. Start Ollama
-Ensure Ollama is serving in the background:
+### System Dependencies (APT)
 ```bash
-ollama serve
+sudo apt update
+# 1. Python 3.12 and Virtual Environment
+sudo apt install python3.12 python3.12-venv python3-pip
+
+# 2. Node.js and npm (Use NodeSource/NVM for newer versions if needed)
+sudo apt install nodejs npm
+
+# 3. Git
+sudo apt install git
 ```
 
-### 2. Start Backend
-In a terminal:
+### AI Engine
+**Ollama** is required:
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+Make sure to pull a model (e.g., `ollama pull qwen2.5:14b`, `ollama pull qwen2.5:7b`, `ollama pull qwen2.5:7b-coder`).
+
+## Manual Setup & Running
+
+### 1. Configuration
+The backend requires configuration.
+1.  Navigate to `backend/`.
+2.  Copy `.env.example` to `.env`.
+3.  Adjust settings if needed (e.g., `DIGEST_LLM_MODEL`).
+
+### 2. Backend
 ```bash
 cd backend
-../.venv/bin/uvicorn main:app --reload
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
-- The API will be available at `http://localhost:8000`.
-- **Interactive Documentation**: Visit `http://localhost:8000/docs` to test endpoints manually.
+- API: `http://localhost:8000`
+- Docs: `http://localhost:8000/docs`
 
-### 3. Start Frontend
-In a new terminal window:
+### 3. Frontend
+Open a new terminal:
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
-- Open **http://localhost:5173** to use the Jarvis App.
-- It will automatically connect to the backend at port 8000.
+- App: **http://localhost:5173**
 
-## Project Structure
-- `backend/`: FastAPI application (Python)
-- `frontend/`: React application (JavaScript/Vite)
-- `data/`: Local database (SQLite) and storage
+
+## Quick Start - After Initial Setup!
+You can run both the backend and frontend using the provided convenience script:
+```bash
+./run.sh
+```
 
 ## Features
-- **Projects**: Create projects to organize your chats.
-- **Chat**: Talk to local LLMs (e.g., Qwen).
-- **History**: Chats are saved locally in `data/jarvis.db`.
+- **Projects**: Organize chats by project.
+- **Chat**: Talk to local LLMs.
+- **RAG**: "Knowledge Base" indexes local folders for context-aware answers.
+- **Data Analysis**: Analyze and plot data from CSVs.
 - **Web Capabilities**:
-    - **Search**: Type `/search <query>` in the chat to search the web. The system attempts to use DuckDuckGo, then Google, and falls back to Wikipedia if necessary.
-    - **Auto-Scrape**: Paste any HTTP/HTTPS link in your message. The content will be largely fetched, cleaned, and injected into the conversation context for the AI to read.
+    - **Search**: `/search <query>` (DuckDuckGo/Google/Wikipedia).
+    - **Auto-Scrape**: Paste URLs to inject content into context.
+- **Daily Digest**: Summaries of finance and tech news (configured via `DIGEST_LLM_MODEL`).
+
+## License
+MIT
